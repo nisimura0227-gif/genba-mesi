@@ -1,0 +1,4 @@
+<!-- 文字のみ（アイコンと分離して使いたい場面向け） -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 140" width="560" height="140">
+  <text x="0" y="98" font-family="'Hiragino Sans','Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif" font-weight="800" font-size="72" letter-spacing="0.02em" fill="#153F28">現場めし</text>
+</svg>

@@ -1,0 +1,6 @@
+<!-- 濃い緑・グラデーション背景（サイトヘッダーなど）の上で使う横組ロックアップ -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 180" width="720" height="180">
+  <rect x="24" y="24" width="132" height="132" rx="30" fill="#153F28"/>
+  <ellipse cx="90" cy="128" rx="40" ry="37" fill="#E8934A"/>
+  <text x="176" y="112" font-family="'Hiragino Sans','Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif" font-weight="800" font-size="64" letter-spacing="0.02em" fill="#F6EFDF">現場めし</text>
+</svg>

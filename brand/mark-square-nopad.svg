@@ -1,0 +1,6 @@
+<!-- LINEプロフィール画像用：正方形いっぱいにタイルを敷き、円形トリミングされても
+     マークが窮屈にならないよう安全マージンを確保したバージョン -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" fill="#153F28"/>
+  <ellipse cx="256" cy="392" rx="150" ry="138" fill="#E8934A"/>
+</svg>
