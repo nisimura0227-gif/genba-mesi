@@ -160,6 +160,7 @@ export default function OrderForm({
 
   async function handleClaimPaid() {
     if (claiming || !myOrder || myOrder.paymentStatus !== "unpaid") return;
+    if (!confirm(`${adminName}さんに現金を手渡し済みですか？\n（まだの場合は先に手渡ししてから押してください）`)) return;
     setClaiming(true);
     setError("");
     try {
