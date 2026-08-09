@@ -35,6 +35,8 @@ export default function OrderForm({
   cutoffAtMs,
   serverNowMs,
   cutoffNotice,
+  adminName,
+  cutoffLabel,
 }: {
   orderedVia: "today" | "tomorrow";
   names: NameLite[];
@@ -44,6 +46,10 @@ export default function OrderForm({
   serverNowMs: number;
   /** 締切・支払いに関する案内文（今日/明日で内容が異なる） */
   cutoffNotice: string;
+  /** 支払い相手（担当者名） */
+  adminName: string;
+  /** 「〇時まで」の表示用ラベル（例: 15:00） */
+  cutoffLabel: string;
 }) {
   const router = useRouter();
 
@@ -251,6 +257,12 @@ export default function OrderForm({
           </div>
         </Card>
 
+        {orderedVia === "tomorrow" && myOrder.paymentStatus === "unpaid" && (
+          <p className="rounded-xl bg-accent-soft px-4 py-3 text-center text-sm font-semibold text-accent-dark">
+            🗓️ 本日中に {adminName}さんへ現金を手渡ししてください
+          </p>
+        )}
+
         {myOrder.paymentStatus === "unpaid" && (
           <div className="flex flex-col gap-2">
             <Button type="button" variant="accent" size="lg" disabled={claiming} onClick={handleClaimPaid}>
@@ -382,10 +394,32 @@ export default function OrderForm({
       </div>
 
       <div>
-        <FieldLabel>支払い方法</FieldLabel>
-        <div className="rounded-xl border-2 border-brand bg-brand-light px-4 py-4 text-lg font-semibold text-brand-dark">
-          {PAYMENT_METHOD}
-        </div>
+        <FieldLabel>{orderedVia === "tomorrow" ? "支払いガイド" : "支払い方法"}</FieldLabel>
+        {orderedVia === "tomorrow" ? (
+          <div className="overflow-hidden rounded-xl border-2 border-brand bg-brand-light">
+            <div className="grid grid-cols-[28px_1fr] gap-x-3 gap-y-3 p-4">
+              <span className="text-xl leading-none">🗓️</span>
+              <span className="text-base text-brand-dark">
+                <b className="font-bold">いつ</b>：本日中（{cutoffLabel}まで）
+              </span>
+              <span className="text-xl leading-none">👤</span>
+              <span className="text-base text-brand-dark">
+                <b className="font-bold">だれに</b>：担当の{adminName}さんへ
+              </span>
+              <span className="text-xl leading-none">💴</span>
+              <span className="text-base text-brand-dark">
+                <b className="font-bold">なにを</b>：現金を直接手渡し
+              </span>
+            </div>
+            <p className="border-t border-brand/20 bg-white/50 px-4 py-2.5 text-xs text-brand-dark">
+              ⚠️ 当日の朝の集金はありません。必ず本日中に手渡ししてください。
+            </p>
+          </div>
+        ) : (
+          <div className="rounded-xl border-2 border-brand bg-brand-light px-4 py-4 text-lg font-semibold text-brand-dark">
+            {PAYMENT_METHOD}（{adminName}さんへ）
+          </div>
+        )}
       </div>
 
       {error && <p className="rounded-lg bg-red-50 px-4 py-3 text-sm font-semibold text-red-600">{error}</p>}

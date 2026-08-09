@@ -45,6 +45,8 @@ export default async function TomorrowOrderPage() {
           cutoffAtMs={cutoffAtMs}
           serverNowMs={now.getTime()}
           cutoffNotice={`⏰ 受付は本日${cutoffLabel}までです。\n💴 支払いは「手渡し」です。本日中に担当者へお支払いください（当日朝の集金はありません）。`}
+          adminName={settings.adminName}
+          cutoffLabel={cutoffLabel}
         />
       )}
     </main>
