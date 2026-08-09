@@ -13,7 +13,7 @@ export default function AdminProtectedLayout({ children }: { children: React.Rea
   }
 
   return (
-    <main className="flex min-h-screen flex-col bg-gray-50 pb-24">
+    <main className="flex min-h-screen flex-col bg-canvas pb-24">
       <header className="flex items-center justify-between bg-white px-4 py-3.5 shadow-sm">
         <div className="flex items-center gap-2.5">
           <img src="/icon.svg" alt="" width={30} height={30} className="rounded-lg" />

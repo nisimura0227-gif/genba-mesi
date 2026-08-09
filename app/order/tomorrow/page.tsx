@@ -15,7 +15,7 @@ export default async function TomorrowOrderPage() {
   const cutoffAtMs = cutoffEpochMs(settings.tomorrowCutoffHour, settings.tomorrowCutoffMinute, now);
 
   return (
-    <main className="flex min-h-screen flex-col bg-gray-50 px-4 py-4">
+    <main className="flex min-h-screen flex-col bg-canvas px-4 py-4">
       <header className="mb-5 flex items-center gap-3">
         <Link
           href="/"

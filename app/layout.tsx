@@ -43,9 +43,9 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ja">
-      <body className="min-h-screen bg-white">
+      <body className="app-shell-bg min-h-screen">
         <LiffInit />
-        <div className="mx-auto min-h-screen w-full max-w-md bg-white shadow-sm">{children}</div>
+        <div className="mx-auto min-h-screen w-full max-w-md bg-canvas shadow-card-lg sm:my-0">{children}</div>
       </body>
     </html>
   );

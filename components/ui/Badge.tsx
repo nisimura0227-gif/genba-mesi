@@ -3,10 +3,10 @@ import { cn } from "@/lib/utils";
 export type BadgeVariant = "success" | "warning" | "neutral" | "danger";
 
 const VARIANTS: Record<BadgeVariant, string> = {
-  success: "bg-brand-light text-brand-dark",
-  warning: "bg-amber-50 text-amber-700",
-  neutral: "bg-gray-100 text-gray-600",
-  danger: "bg-red-50 text-red-600",
+  success: "bg-brand-soft text-brand-darker border border-brand/15",
+  warning: "bg-accent-soft text-accent-dark border border-accent/20",
+  neutral: "bg-gray-100 text-gray-600 border border-gray-200",
+  danger: "bg-red-50 text-red-600 border border-red-200",
 };
 
 export function Badge({

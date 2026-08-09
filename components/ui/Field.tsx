@@ -2,7 +2,7 @@ import { forwardRef } from "react";
 import { cn } from "@/lib/utils";
 
 const FIELD_CLASS =
-  "w-full rounded-xl border-2 border-gray-300 bg-white px-4 py-3.5 text-base transition-colors focus:border-brand focus:outline-none focus:ring-4 focus:ring-brand/10";
+  "w-full rounded-xl border-2 border-gray-200 bg-white px-4 py-3.5 text-base shadow-sm transition-colors focus:border-brand focus:outline-none focus:ring-4 focus:ring-brand/10";
 
 export const Input = forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(
   ({ className, ...props }, ref) => <input ref={ref} className={cn(FIELD_CLASS, className)} {...props} />

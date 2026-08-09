@@ -5,12 +5,12 @@ export type ButtonVariant = "primary" | "accent" | "outline" | "ghost" | "danger
 export type ButtonSize = "default" | "lg" | "sm";
 
 const BASE =
-  "inline-flex items-center justify-center gap-2 rounded-2xl font-bold transition-colors active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100 disabled:pointer-events-none";
+  "inline-flex items-center justify-center gap-2 rounded-2xl font-bold transition-all active:scale-[0.98] active:translate-y-px disabled:opacity-50 disabled:active:scale-100 disabled:active:translate-y-0 disabled:pointer-events-none";
 
 const VARIANTS: Record<ButtonVariant, string> = {
-  primary: "bg-brand text-white shadow-sm active:bg-brand-dark",
-  accent: "border-2 border-accent-dark bg-accent text-white shadow-sm active:bg-accent-dark",
-  outline: "border-2 border-brand bg-white text-brand-dark active:bg-brand-light",
+  primary: "bg-brand-gradient text-white shadow-pop active:shadow-none",
+  accent: "bg-accent-gradient text-white shadow-pop active:shadow-none",
+  outline: "border-2 border-brand bg-white text-brand-dark shadow-sm active:bg-brand-light",
   ghost: "border-2 border-gray-200 bg-white text-gray-600 active:bg-gray-50",
   danger: "bg-red-50 text-red-500 active:bg-red-100",
   muted: "bg-gray-100 text-gray-600 active:bg-gray-200",

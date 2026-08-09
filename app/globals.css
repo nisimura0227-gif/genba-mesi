@@ -3,8 +3,8 @@
 @tailwind utilities;
 
 html, body {
-  background-color: #ffffff;
-  color: #1f2937;
+  background-color: #e9e7de;
+  color: #20261f;
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -19,4 +19,12 @@ input, select, textarea, button {
 /* iOSでのズーム防止のためフォントサイズは16px以上を維持 */
 select, input {
   font-size: 17px;
+}
+
+/* アプリ全体の背景に、控えめな質感を持たせる */
+.app-shell-bg {
+  background-color: #e9e7de;
+  background-image:
+    radial-gradient(circle at 15% 0%, rgba(47, 125, 79, 0.10), transparent 45%),
+    radial-gradient(circle at 100% 15%, rgba(230, 126, 34, 0.08), transparent 40%);
 }

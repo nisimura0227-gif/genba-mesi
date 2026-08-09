@@ -1,10 +1,10 @@
 import { cn } from "@/lib/utils";
 
-/** shadcn/ui 風のカード。白背景・細い枠線・角丸・控えめな影が基本形。 */
+/** 白背景・角丸・柔らかい二重の影で立体感を出したカード。 */
 export function Card({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn("rounded-2xl border border-gray-200 bg-white p-4 shadow-sm", className)}
+      className={cn("rounded-2xl border border-black/[0.04] bg-white p-4 shadow-card", className)}
       {...props}
     />
   );

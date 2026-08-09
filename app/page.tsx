@@ -1,11 +1,10 @@
-import Link from "next/link";
 import { getImageInfo, getSettings, listOrderDates, listOrdersByDate } from "@/lib/store";
 import { todayStr, formatDateJp, formatCutoffLabel, cutoffEpochMs, isWithinLastDays } from "@/lib/date";
 import ImageZoomModal from "@/components/ImageZoomModal";
 import StatusCard from "@/components/StatusCard";
 import OrderButtons from "@/components/OrderButtons";
+import TopHeader from "@/components/TopHeader";
 import { Card } from "@/components/ui/Card";
-import { buttonVariants } from "@/components/ui/Button";
 
 export const dynamic = "force-dynamic";
 
@@ -37,18 +36,15 @@ export default async function TopPage() {
   const cutoffLabel = formatCutoffLabel(settings.cutoffHour, settings.cutoffMinute);
 
   return (
-    <main className="flex min-h-screen flex-col bg-gray-50">
-      <header className="flex items-center justify-between bg-white px-4 py-3.5">
-        <div className="flex items-center gap-2.5">
-          <img src="/icon.svg" alt="" width={34} height={34} className="rounded-lg" />
-          <h1 className="text-lg font-bold text-brand-dark">現場めし</h1>
-        </div>
-        <Link href="/admin/login" className={buttonVariants("ghost", "sm")}>
-          管理者ログイン
-        </Link>
-      </header>
+    <main className="flex min-h-screen flex-col bg-canvas">
+      <TopHeader />
 
-      <div className="flex-1 space-y-6 px-4 py-5 pb-12">
+      <div className="flex-1 space-y-7 px-4 py-5 pb-12">
+        <section>
+          <p className="mb-2 text-sm font-bold text-gray-500">注文する</p>
+          <OrderButtons cutoffAtMs={cutoffAtMs} serverNowMs={serverNowMs} />
+        </section>
+
         <StatusCard
           dateLabel={formatDateJp(todayStr(now))}
           adminName={settings.adminName}
@@ -71,10 +67,6 @@ export default async function TopPage() {
               まだ登録されていません
             </Card>
           )}
-        </section>
-
-        <section>
-          <OrderButtons cutoffAtMs={cutoffAtMs} serverNowMs={serverNowMs} />
         </section>
 
         {ranking.length > 0 && (

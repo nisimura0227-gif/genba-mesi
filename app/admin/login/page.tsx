@@ -37,12 +37,12 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col justify-center bg-gray-50 px-6 py-10">
+    <main className="flex min-h-screen flex-col justify-center bg-canvas px-6 py-10">
       <div className="mb-8 flex flex-col items-center gap-3">
-        <img src="/icon.svg" alt="" width={56} height={56} className="rounded-2xl" />
+        <img src="/icon.svg" alt="" width={56} height={56} className="rounded-2xl bg-brand-gradient p-2 shadow-card" />
         <h1 className="text-xl font-bold text-brand-dark">管理者ログイン</h1>
       </div>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-5 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-5 rounded-2xl border border-black/[0.04] bg-white p-5 shadow-card">
         <div>
           <FieldLabel>パスワード</FieldLabel>
           <Input

@@ -260,7 +260,7 @@ export default function OrderForm({
           </div>
         )}
         {myOrder.paymentStatus === "claimed" && (
-          <p className="rounded-xl bg-amber-50 px-4 py-3 text-center text-sm font-semibold text-amber-700">
+          <p className="rounded-xl bg-accent-soft px-4 py-3 text-center text-sm font-semibold text-accent-dark">
             🙋 申告済みです。担当者の確認をお待ちください。
           </p>
         )}
@@ -317,7 +317,7 @@ export default function OrderForm({
     <form onSubmit={handleSubmit} className="flex flex-col gap-6">
       <LiffLink name={name} />
 
-      <Card className="border-2 border-amber-200 bg-amber-50 text-sm leading-relaxed text-amber-800">
+      <Card className="border-2 border-accent/25 bg-accent-soft text-sm leading-relaxed text-accent-dark">
         {cutoffNotice.split("\n").map((line, i) => (
           <p key={i}>{line}</p>
         ))}
