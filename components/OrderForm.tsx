@@ -361,7 +361,9 @@ export default function OrderForm({
                 <option key={n.id} value={n.name} />
               ))}
             </datalist>
-            <HelpText>入力した名前はこの端末に保存され、次回から自動で入ります。</HelpText>
+            <HelpText>
+              入力した名前はこの端末に保存され、次回から自動で入ります。同じ名前の方がいる場合は「山田太郎(A班)」のように区別してください。
+            </HelpText>
           </>
         )}
       </div>
