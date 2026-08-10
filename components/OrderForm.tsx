@@ -57,6 +57,10 @@ export default function OrderForm({
 
   const [phase, setPhase] = useState<"loading" | "form" | "done">("loading");
   const [myOrder, setMyOrder] = useState<MyOrder | null>(null);
+  /** サーバー側で「この名前の注文は確かに自分のもの」と確認済みの名前。
+   *  フォームで名前欄を書き換えた場合はこれと一致しなくなるため、
+   *  確認済みの本人編集としては扱わず、同姓同名チェックをやり直す。 */
+  const [confirmedName, setConfirmedName] = useState<string | null>(null);
 
   const [name, setName] = useState("");
   const [editingName, setEditingName] = useState(false);
@@ -102,6 +106,7 @@ export default function OrderForm({
       setName(saved);
       if (existing) {
         setMyOrder(existing);
+        setConfirmedName(saved);
         setMenuItem(existing.menuItem);
         setIsLarge(existing.isLarge);
         setPhase("done");
@@ -118,9 +123,14 @@ export default function OrderForm({
   const estimatedTotal = selectedMenu ? selectedMenu.price + (isLarge ? largeExtraPrice : 0) : 0;
   const canSubmit = Boolean(name.trim()) && Boolean(menuItem) && !submitting && !closed;
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!canSubmit) return;
+  /**
+   * confirmOverwrite=false で送って「同じ名前の既存注文がある」と分かった場合、
+   * それが別人の可能性があるので、内容を見せて本人か確認してから
+   * confirmOverwrite=true で送り直す。同姓同名の別人の注文を静かに
+   * 上書きしてしまう事故を防ぐためのガード。
+   */
+  async function submitOrder(confirmOverwrite: boolean) {
+    const trimmedName = name.trim();
     setSubmitting(true);
     setError("");
     try {
@@ -129,18 +139,39 @@ export default function OrderForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           orderedVia,
-          name: name.trim(),
+          name: trimmedName,
           menuItem,
           isLarge,
+          confirmOverwrite,
         }),
       });
       const data = await res.json();
+
+      if (res.status === 409 && data?.conflict) {
+        setSubmitting(false);
+        const existing = data.existing as { menuItem: string; isLarge: boolean; total: number } | undefined;
+        const detail = existing
+          ? `（${existing.menuItem}${existing.isLarge ? "（大盛り）" : ""}・${yen(existing.total)}）`
+          : "";
+        const isMine = confirm(
+          `「${trimmedName}」さんの注文はすでにあります${detail}。\n\nご本人の注文変更ですか？\n\n「OK」→ はい、この内容に変更します\n「キャンセル」→ いいえ、別人です`
+        );
+        if (isMine) {
+          await submitOrder(true);
+        } else {
+          setError(
+            "同じ名前の別の方の注文がある可能性があります。名前をご確認のうえ、区別できる名前（例：山田太郎(A班)）でもう一度お試しください。"
+          );
+        }
+        return;
+      }
+
       if (!res.ok) {
         setError(data.message || "注文に失敗しました。もう一度お試しください。");
         setSubmitting(false);
         return;
       }
-      saveName(name);
+      saveName(trimmedName);
       const o = data.order;
       setMyOrder({
         menuItem: o.menuItem,
@@ -149,6 +180,7 @@ export default function OrderForm({
         paymentStatus: (o.paymentStatus as PaymentStatus) ?? "unpaid",
         total: (o.unitPrice ?? 0) + (o.largeExtra ?? 0),
       });
+      setConfirmedName(trimmedName);
       setEditingName(false);
       setPhase("done");
       setSubmitting(false);
@@ -156,6 +188,18 @@ export default function OrderForm({
       setError("通信エラーが発生しました。電波状況を確認してもう一度お試しください。");
       setSubmitting(false);
     }
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!canSubmit) return;
+    const trimmedName = name.trim();
+    // このセッションで確認済みの本人（confirmedName）と名前が完全に一致する場合だけ、
+    // 確認ダイアログを出さずそのまま変更する。名前を書き換えた場合や未確認の
+    // 新規注文は、同姓同名チェック（サーバー側のconflict応答）に必ず通す。
+    const isKnownSelf =
+      Boolean(myOrder) && confirmedName !== null && confirmedName.trim().toLowerCase() === trimmedName.toLowerCase();
+    await submitOrder(isKnownSelf);
   }
 
   async function handleClaimPaid() {
@@ -183,7 +227,7 @@ export default function OrderForm({
   }
 
   async function handleCancel() {
-    if (cancelling || closed) return;
+    if (cancelling || closed || !myOrder || myOrder.paymentStatus !== "unpaid") return;
     if (!confirm("注文をキャンセルします。よろしいですか？")) return;
     setCancelling(true);
     setError("");
@@ -295,9 +339,17 @@ export default function OrderForm({
             >
               ✏️ 注文内容を変更する
             </Button>
-            <Button type="button" variant="danger" size="lg" disabled={cancelling} onClick={handleCancel}>
-              {cancelling ? "処理中..." : "❌ 注文をキャンセルする"}
-            </Button>
+            {myOrder.paymentStatus === "unpaid" ? (
+              <Button type="button" variant="danger" size="lg" disabled={cancelling} onClick={handleCancel}>
+                {cancelling ? "処理中..." : "❌ 注文をキャンセルする"}
+              </Button>
+            ) : (
+              <p className="rounded-xl bg-gray-50 px-4 py-3 text-center text-sm text-gray-500">
+                支払い済み、または支払い確認中のため、ご自身でのキャンセルはできません。
+                <br />
+                変更・キャンセルが必要な場合は担当の{adminName}さんへ直接ご連絡ください。
+              </p>
+            )}
           </>
         )}
 

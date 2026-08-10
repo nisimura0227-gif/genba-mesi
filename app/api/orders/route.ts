@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { listOrdersByDate, listMenuItems, upsertOrder, addName, getSettings, PAYMENT_METHOD } from "@/lib/store";
+import { listOrdersByDate, listMenuItems, upsertOrder, addName, getSettings, orderTotal, PAYMENT_METHOD } from "@/lib/store";
 import { isAdminRequest } from "@/lib/authGuard";
 import { isTodayOrderClosed, todayStr, tomorrowStr, formatCutoffLabel } from "@/lib/date";
 import { notifyAdminNewOrder, notifyUserOrderConfirmed } from "@/lib/notify";
@@ -26,6 +26,9 @@ export async function POST(req: NextRequest) {
   const name = typeof body?.name === "string" ? body.name.trim() : "";
   const menuItem = typeof body?.menuItem === "string" ? body.menuItem.trim() : "";
   const isLarge = body?.isLarge === true;
+  // true のときだけ、同じ名前・同じ日付の既存注文を上書きしてよい。
+  // 同姓同名の別人の注文を静かに上書きしてしまう事故を防ぐためのガード。
+  const confirmOverwrite = body?.confirmOverwrite === true;
   // 支払い方法は「手渡し」固定（現金ケースへの投函は廃止）。クライアント入力は信用しない。
   const paymentMethod = PAYMENT_METHOD;
 
@@ -61,16 +64,7 @@ export async function POST(req: NextRequest) {
   const unitPrice = selected.price;
   const largeExtra = isLarge ? settings.largeExtraPrice : 0;
 
-  const existing = await listOrdersByDate(expectedDate).then((list) =>
-    list.find((o) => o.name.trim().toLowerCase() === name.toLowerCase())
-  );
-  const isEdit = Boolean(existing);
-  const amountChanged = existing ? existing.unitPrice + existing.largeExtra !== unitPrice + largeExtra : false;
-
-  // 名前は自己登録できる。既に同名があれば addName 内で重複登録されない。
-  await addName(name);
-
-  const order = await upsertOrder({
+  const result = await upsertOrder({
     deliveryDate: expectedDate,
     orderedVia,
     name,
@@ -79,7 +73,32 @@ export async function POST(req: NextRequest) {
     unitPrice,
     largeExtra,
     paymentMethod,
+    confirmOverwrite,
   });
+
+  if (!result.ok) {
+    // 同じ名前・同じ日付の注文が既にある。別人の可能性があるため、
+    // 確認なしには上書きせず、既存注文の内容を返して確認を求める。
+    const existing = result.existing;
+    return NextResponse.json(
+      {
+        conflict: true,
+        message: `「${name}」さんの注文はすでにあります。`,
+        existing: {
+          menuItem: existing.menuItem,
+          isLarge: existing.isLarge,
+          total: orderTotal(existing),
+        },
+      },
+      { status: 409 }
+    );
+  }
+
+  const { order, isEdit, previous } = result;
+  const amountChanged = previous ? previous.unitPrice + previous.largeExtra !== unitPrice + largeExtra : false;
+
+  // 名前は自己登録できる。既に同名があれば addName 内で重複登録されない。
+  await addName(name);
 
   if (settings.notifyNewOrder) {
     notifyAdminNewOrder(order, isEdit, amountChanged).catch(() => {});

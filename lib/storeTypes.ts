@@ -46,7 +46,17 @@ export type UpsertOrderInput = {
   unitPrice: number;
   largeExtra: number;
   paymentMethod: string;
+  /**
+   * true のときだけ、既存注文（同じ名前・同じ日付）を上書きしてよい。
+   * false で既存注文が見つかった場合は書き込みを行わず conflict を返す。
+   * 「同姓同名の別人の注文を静かに上書きしてしまう」事故を防ぐためのガード。
+   */
+  confirmOverwrite: boolean;
 };
+
+export type UpsertOrderResult =
+  | { ok: true; order: Order; isEdit: boolean; previous: Order | null }
+  | { ok: false; conflict: true; existing: Order };
 
 /** LINEの利用者アカウントと、サイト上の「名前」を紐付けるための記録。 */
 export type LineLink = {
@@ -162,7 +172,7 @@ export interface StoreBackend {
   listOrdersByDate(deliveryDate: string): Promise<Order[]>;
   listOrderDates(): Promise<string[]>;
   findOrder(deliveryDate: string, name: string): Promise<Order | null>;
-  upsertOrder(input: UpsertOrderInput): Promise<Order>;
+  upsertOrder(input: UpsertOrderInput): Promise<UpsertOrderResult>;
   deleteOrder(id: string): Promise<void>;
   /** 管理者がサイト上または管理者LINEから支払い状況を確定・変更する */
   setOrderPaymentStatus(

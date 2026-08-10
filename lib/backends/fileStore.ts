@@ -12,6 +12,7 @@ import type {
   Order,
   ImageInfo,
   UpsertOrderInput,
+  UpsertOrderResult,
   Settings,
   StoreBackend,
   PaymentStatus,
@@ -203,7 +204,11 @@ async function findOrder(deliveryDate: string, name: string): Promise<Order | nu
   );
 }
 
-async function upsertOrder(input: UpsertOrderInput): Promise<Order> {
+// 「同じ名前・同じ日付」で既存注文が見つかったとき、confirmOverwrite が true で
+// なければ書き込まずに conflict を返す。同姓同名の別人の注文を静かに上書きしてしまう
+// 事故を防ぐためのガード。既存注文の有無の確認と書き込みを同じロックの中で行うことで、
+// ほぼ同時に2件送信された場合でも安全に判定できる（TOCTOUレースを避ける）。
+async function upsertOrder(input: UpsertOrderInput): Promise<UpsertOrderResult> {
   return withLock("orders.json", async () => {
     const all = await readOrders();
     const now = new Date().toISOString();
@@ -213,6 +218,12 @@ async function upsertOrder(input: UpsertOrderInput): Promise<Order> {
     const idx = all.findIndex(
       (o) => o.deliveryDate === input.deliveryDate && o.name.trim().toLowerCase() === targetName
     );
+
+    if (idx !== -1 && !input.confirmOverwrite) {
+      return { ok: false, conflict: true, existing: all[idx] };
+    }
+
+    const previous = idx !== -1 ? all[idx] : null;
     let record: Order;
     if (idx !== -1) {
       // 内容を変更しても、管理者が確認済みにした支払い状況は引き継ぐ
@@ -244,7 +255,7 @@ async function upsertOrder(input: UpsertOrderInput): Promise<Order> {
       all.push(record);
     }
     await writeJson("orders.json", all);
-    return record;
+    return { ok: true, order: record, isEdit: idx !== -1, previous };
   });
 }
 

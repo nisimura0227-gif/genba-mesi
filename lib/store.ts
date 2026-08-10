@@ -13,7 +13,17 @@ import { fileStore } from "./backends/fileStore";
 import { redisStore } from "./backends/redisStore";
 import type { StoreBackend } from "./storeTypes";
 
-export type { NameItem, MenuItem, Order, ImageInfo, UpsertOrderInput, Settings, PaymentStatus, LineLink } from "./storeTypes";
+export type {
+  NameItem,
+  MenuItem,
+  Order,
+  ImageInfo,
+  UpsertOrderInput,
+  UpsertOrderResult,
+  Settings,
+  PaymentStatus,
+  LineLink,
+} from "./storeTypes";
 export { PAYMENT_METHOD, DEFAULT_SETTINGS, orderTotal, paymentStatusLabel } from "./storeTypes";
 
 const useRedis = Boolean(

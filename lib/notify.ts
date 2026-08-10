@@ -4,8 +4,8 @@
 
 import type { Order } from "./storeTypes";
 import { orderTotal, paymentStatusLabel } from "./storeTypes";
-import { getSettings, getLineLinkByName, listLineLinks } from "./store";
-import { formatDateJp, formatTimeHm } from "./date";
+import { getSettings, getLineLinkByName, listLineLinks, listOrdersByDate } from "./store";
+import { formatDateJp, formatTimeHm, tomorrowStr } from "./date";
 import { pushMessage, multicastMessage, type LineMessage } from "./line";
 
 function yen(n: number): string {
@@ -186,6 +186,72 @@ export async function notifyMorningReminder(cutoffLabel: string): Promise<void> 
     await multicastMessage(
       links.map((l) => l.lineUserId),
       [{ type: "flex", altText: `おはようございます！本日のお弁当受付中です。締切は${cutoffLabel}です。`, contents }]
+    );
+  });
+}
+
+/**
+ * 明日の注文の締切前リマインド（利用者へ）。
+ * まだ明日分を注文していない人だけに送る（すでに注文済みの人まで
+ * 毎回リマインドすると通知疲れを招くため）。
+ */
+export async function notifyTomorrowReminder(cutoffLabel: string): Promise<void> {
+  await safeRun("notifyTomorrowReminder", async () => {
+    const links = await listLineLinks();
+    if (links.length === 0) return;
+
+    const orders = await listOrdersByDate(tomorrowStr());
+    const orderedNames = new Set(orders.map((o) => o.name.trim().toLowerCase()));
+    const targets = links.filter((l) => !orderedNames.has(l.name.trim().toLowerCase()));
+    if (targets.length === 0) return;
+
+    const url = liffOrderUrl("tomorrow");
+    const contents: Record<string, unknown> = {
+      type: "bubble",
+      body: {
+        type: "box",
+        layout: "vertical",
+        spacing: "sm",
+        contents: [
+          { type: "text", text: "🔔 明日の弁当注文のお知らせ", weight: "bold", size: "lg" },
+          { type: "text", text: `明日の弁当は本日${cutoffLabel}までです。`, wrap: true },
+          { type: "text", text: "まだの方はお早めにご注文ください。", wrap: true },
+        ],
+      },
+      ...(url
+        ? {
+            footer: {
+              type: "box",
+              layout: "vertical",
+              spacing: "sm",
+              contents: [
+                {
+                  type: "button",
+                  style: "primary",
+                  color: "#e67e22",
+                  action: { type: "uri", label: "🍱 注文する", uri: url },
+                },
+                {
+                  type: "text",
+                  text: "💰 明日の注文は、前日中（本日中）に担当者へ現金でお支払いください。",
+                  wrap: true,
+                  size: "xs",
+                  color: "#999999",
+                },
+              ],
+            },
+          }
+        : {}),
+    };
+    await multicastMessage(
+      targets.map((l) => l.lineUserId),
+      [
+        {
+          type: "flex",
+          altText: `明日の弁当は本日${cutoffLabel}までです。まだの方はお早めにご注文ください。`,
+          contents,
+        },
+      ]
     );
   });
 }
