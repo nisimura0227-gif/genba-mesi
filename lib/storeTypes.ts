@@ -87,8 +87,13 @@ export type Settings = {
   adminLineUsers: AdminLineUser[];
   /** 新規注文が入るたびに管理者へ即時LINE通知するか */
   notifyNewOrder: boolean;
-  /** 休工モード。trueの間は今日・明日どちらの注文も新規受付を停止する */
+  /** 休工モード（手動）。trueの間は曜日に関わらず今日・明日どちらの注文も新規受付を停止する */
   orderingPaused: boolean;
+  /**
+   * 土曜日・日曜日は自動的に休工扱いになる。ここに登録した日（"YYYY-MM-DD"）だけは
+   * 例外的に営業日として扱う（例：たまたま仕事がある土曜日）。
+   */
+  workingWeekends: string[];
 };
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -102,6 +107,7 @@ export const DEFAULT_SETTINGS: Settings = {
   adminLineUsers: [],
   notifyNewOrder: true,
   orderingPaused: false,
+  workingWeekends: [],
 };
 
 /** 保存されている設定に足りない項目があってもアプリが壊れないよう既定値で補う */
@@ -136,6 +142,11 @@ export function normalizeSettings(raw: Partial<Settings> | null | undefined): Se
     adminLineUsers,
     notifyNewOrder: typeof s.notifyNewOrder === "boolean" ? s.notifyNewOrder : DEFAULT_SETTINGS.notifyNewOrder,
     orderingPaused: typeof s.orderingPaused === "boolean" ? s.orderingPaused : DEFAULT_SETTINGS.orderingPaused,
+    workingWeekends: Array.isArray(s.workingWeekends)
+      ? Array.from(
+          new Set(s.workingWeekends.filter((d): d is string => typeof d === "string" && /^\d{4}-\d{2}-\d{2}$/.test(d)))
+        )
+      : DEFAULT_SETTINGS.workingWeekends,
   };
 }
 

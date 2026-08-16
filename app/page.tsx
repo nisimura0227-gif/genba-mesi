@@ -1,5 +1,13 @@
 import { getImageInfo, getSettings, listOrderDates, listOrdersByDate } from "@/lib/store";
-import { todayStr, formatDateJp, formatCutoffLabel, cutoffEpochMs, isWithinLastDays } from "@/lib/date";
+import {
+  todayStr,
+  tomorrowStr,
+  formatDateJp,
+  formatCutoffLabel,
+  cutoffEpochMs,
+  isWithinLastDays,
+  isOrderingPausedForDate,
+} from "@/lib/date";
 import ImageZoomModal from "@/components/ImageZoomModal";
 import StatusCard from "@/components/StatusCard";
 import OrderButtons from "@/components/OrderButtons";
@@ -34,6 +42,8 @@ export default async function TopPage() {
   const serverNowMs = now.getTime();
   const cutoffAtMs = cutoffEpochMs(settings.cutoffHour, settings.cutoffMinute, now);
   const cutoffLabel = formatCutoffLabel(settings.cutoffHour, settings.cutoffMinute);
+  const todayPaused = isOrderingPausedForDate(settings, todayStr(now));
+  const tomorrowPaused = isOrderingPausedForDate(settings, tomorrowStr(now));
 
   return (
     <main className="flex min-h-screen flex-col bg-canvas">
@@ -42,7 +52,12 @@ export default async function TopPage() {
       <div className="flex-1 space-y-7 px-4 py-5 pb-12">
         <section>
           <p className="mb-2 text-sm font-bold text-gray-500">注文する</p>
-          <OrderButtons cutoffAtMs={cutoffAtMs} serverNowMs={serverNowMs} orderingPaused={settings.orderingPaused} />
+          <OrderButtons
+            cutoffAtMs={cutoffAtMs}
+            serverNowMs={serverNowMs}
+            todayPaused={todayPaused}
+            tomorrowPaused={tomorrowPaused}
+          />
         </section>
 
         <StatusCard
@@ -51,7 +66,7 @@ export default async function TopPage() {
           cutoffLabel={cutoffLabel}
           cutoffAtMs={cutoffAtMs}
           serverNowMs={serverNowMs}
-          orderingPaused={settings.orderingPaused}
+          orderingPaused={todayPaused}
         />
 
         <section>

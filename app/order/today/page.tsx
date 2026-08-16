@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { listNames, listMenuItems, getSettings } from "@/lib/store";
-import { todayStr, formatDateJp, formatCutoffLabel, cutoffEpochMs } from "@/lib/date";
+import { todayStr, formatDateJp, formatCutoffLabel, cutoffEpochMs, isOrderingPausedForDate } from "@/lib/date";
 import OrderForm from "@/components/OrderForm";
 
 export const dynamic = "force-dynamic";
@@ -9,9 +9,11 @@ export default async function TodayOrderPage() {
   const [names, menuItems, settings] = await Promise.all([listNames(), listMenuItems(), getSettings()]);
 
   const now = new Date();
-  const dateLabel = formatDateJp(todayStr(now));
+  const today = todayStr(now);
+  const dateLabel = formatDateJp(today);
   const cutoffLabel = formatCutoffLabel(settings.cutoffHour, settings.cutoffMinute);
   const cutoffAtMs = cutoffEpochMs(settings.cutoffHour, settings.cutoffMinute, now);
+  const paused = isOrderingPausedForDate(settings, today);
 
   return (
     <main className="flex min-h-screen flex-col bg-canvas px-4 py-4">
@@ -30,7 +32,7 @@ export default async function TodayOrderPage() {
         </div>
       </header>
 
-      {settings.orderingPaused ? (
+      {paused ? (
         <div className="flex flex-1 flex-col items-center justify-center gap-3 text-center">
           <p className="text-4xl">🚧</p>
           <p className="text-lg font-bold text-gray-700">本日は注文を受け付けていません</p>

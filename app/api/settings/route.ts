@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSettings, saveSettings } from "@/lib/store";
 import { isAdminRequest } from "@/lib/authGuard";
+import { todayStr, dayOfWeekFromDateStr } from "@/lib/date";
 import type { Settings } from "@/lib/store";
 
 export const runtime = "nodejs";
@@ -63,6 +64,20 @@ export async function PUT(req: NextRequest) {
 
   if (typeof body.orderingPaused === "boolean") {
     patch.orderingPaused = body.orderingPaused;
+  }
+
+  if (Array.isArray(body.workingWeekends)) {
+    const list = body.workingWeekends;
+    const validFormat = list.every((d: unknown) => typeof d === "string" && /^\d{4}-\d{2}-\d{2}$/.test(d));
+    if (!validFormat) {
+      return NextResponse.json({ message: "営業日の形式が正しくありません。" }, { status: 400 });
+    }
+    const today = todayStr();
+    // 土曜・日曜以外の日付や、すでに過ぎた日付は保存しない（登録し忘れた古い日付が延々と残らないように）
+    patch.workingWeekends = Array.from(new Set(list as string[])).filter((d) => {
+      const dow = dayOfWeekFromDateStr(d);
+      return (dow === 0 || dow === 6) && d >= today;
+    });
   }
 
   if (body.largeExtraPrice !== undefined) {

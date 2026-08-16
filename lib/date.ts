@@ -2,6 +2,8 @@
 // サーバーのタイムゾーン設定に依存しないよう、常に Intl.DateTimeFormat で
 // Asia/Tokyo を明示して計算する。
 
+import type { Settings } from "./storeTypes";
+
 const TZ = "Asia/Tokyo";
 /** JSTはUTC+9固定（サマータイムが無い） */
 const JST_OFFSET_MS = 9 * 60 * 60 * 1000;
@@ -108,4 +110,26 @@ export function isWithinLastDays(dateStr: string, days: number, now: Date = new 
   const targetUtc = Date.UTC(y, m - 1, d);
   const diffDays = Math.floor((todayUtc - targetUtc) / (24 * 60 * 60 * 1000));
   return diffDays >= 0 && diffDays < days;
+}
+
+/** "YYYY-MM-DD" の曜日を返す（0=日, 1=月, ..., 6=土）。日付だけの比較なのでJSTの時差を気にしなくてよい */
+export function dayOfWeekFromDateStr(dateStr: string): number {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+}
+
+/**
+ * 指定した日（お弁当を食べる日）の注文受付が休工扱いかどうかを判定する。
+ * ルール（優先順）：
+ * 1. 管理者が手動で休工モードをONにしている間は、曜日に関わらず常に休工
+ * 2. 土曜日・日曜日は、その日が settings.workingWeekends に
+ *    「営業日」として登録されていない限り休工
+ * 3. 平日は休工ではない
+ */
+export function isOrderingPausedForDate(settings: Settings, dateStr: string): boolean {
+  if (settings.orderingPaused) return true;
+  const dow = dayOfWeekFromDateStr(dateStr);
+  const isWeekend = dow === 0 || dow === 6;
+  if (!isWeekend) return false;
+  return !settings.workingWeekends.includes(dateStr);
 }

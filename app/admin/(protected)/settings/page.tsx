@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Settings } from "@/lib/storeTypes";
+import { formatDateJp } from "@/lib/date";
 import { Input, FieldLabel, HelpText } from "@/components/ui/Field";
 import Button from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -26,7 +27,28 @@ export default function AdminSettingsPage() {
   const [shopPhone, setShopPhone] = useState("");
   const [notifyNewOrder, setNotifyNewOrder] = useState(true);
   const [orderingPaused, setOrderingPaused] = useState(false);
+  const [workingWeekends, setWorkingWeekends] = useState<string[]>([]);
+  const [newWeekendDate, setNewWeekendDate] = useState("");
+  const [weekendError, setWeekendError] = useState("");
   const [adminLineUsers, setAdminLineUsers] = useState<Settings["adminLineUsers"]>([]);
+
+  function addWorkingWeekend() {
+    if (!newWeekendDate) return;
+    const dow = new Date(`${newWeekendDate}T00:00:00Z`).getUTCDay();
+    if (dow !== 0 && dow !== 6) {
+      setWeekendError("土曜日または日曜日の日付を選んでください。");
+      return;
+    }
+    setWeekendError("");
+    if (!workingWeekends.includes(newWeekendDate)) {
+      setWorkingWeekends([...workingWeekends, newWeekendDate].sort());
+    }
+    setNewWeekendDate("");
+  }
+
+  function removeWorkingWeekend(date: string) {
+    setWorkingWeekends(workingWeekends.filter((d) => d !== date));
+  }
 
   useEffect(() => {
     fetch("/api/settings", { cache: "no-store" })
@@ -41,6 +63,7 @@ export default function AdminSettingsPage() {
           setShopPhone(s.shopPhone);
           setNotifyNewOrder(s.notifyNewOrder);
           setOrderingPaused(s.orderingPaused);
+          setWorkingWeekends(s.workingWeekends);
           setAdminLineUsers(s.adminLineUsers);
         }
       })
@@ -71,6 +94,7 @@ export default function AdminSettingsPage() {
           shopPhone: shopPhone.trim(),
           notifyNewOrder,
           orderingPaused,
+          workingWeekends,
         }),
       });
       const data = await res.json();
@@ -97,12 +121,54 @@ export default function AdminSettingsPage() {
       <form onSubmit={handleSave} className="flex flex-col gap-6">
         <h2 className="text-base font-bold text-brand-dark">⚙️ 設定</h2>
 
+        <Card className="flex flex-col gap-4">
+          <div>
+            <p className="text-sm font-bold text-gray-800">🗓️ 土曜・日曜の営業設定</p>
+            <HelpText>
+              土曜日・日曜日は自動的に注文を受け付けません。仕事がある土日だけ、下から営業日として追加してください。
+            </HelpText>
+          </div>
+
+          {workingWeekends.length === 0 ? (
+            <p className="rounded-lg border border-dashed border-gray-300 px-3 py-3 text-center text-sm text-gray-400">
+              登録されている営業日はありません。
+            </p>
+          ) : (
+            <ul className="flex flex-col gap-2">
+              {workingWeekends.map((d) => (
+                <li
+                  key={d}
+                  className="flex items-center justify-between rounded-lg border border-gray-200 px-3 py-2.5 text-sm"
+                >
+                  <span className="font-semibold text-gray-800">{formatDateJp(d)}は営業</span>
+                  <Button type="button" size="sm" variant="muted" onClick={() => removeWorkingWeekend(d)}>
+                    削除
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <div className="flex gap-2">
+            <Input
+              type="date"
+              value={newWeekendDate}
+              onChange={(e) => setNewWeekendDate(e.target.value)}
+              className="flex-1"
+            />
+            <Button type="button" variant="outline" onClick={addWorkingWeekend}>
+              追加
+            </Button>
+          </div>
+          {weekendError && <p className="text-xs font-semibold text-red-600">{weekendError}</p>}
+        </Card>
+
         <Card className="border-2 border-accent/30 bg-accent-soft">
           <label className="flex cursor-pointer items-center justify-between gap-3">
             <span>
-              <span className="block text-sm font-bold text-accent-dark">🚧 休工モード（注文受付を停止）</span>
+              <span className="block text-sm font-bold text-accent-dark">🚧 臨時休工（手動）</span>
               <span className="mt-1 block text-xs leading-relaxed text-accent-dark">
-                ONにすると、今日・明日どちらの注文ページにも「本日は注文を受け付けていません」と表示され、新しい注文を受け付けなくなります。
+                土日以外の日に臨時で休む場合はこちらをONにしてください。ONの間は土日の設定に関わらず、今日・明日どちらの注文も受け付けなくなります。
               </span>
             </span>
             <input

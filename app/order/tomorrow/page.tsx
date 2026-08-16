@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { listNames, listMenuItems, getSettings } from "@/lib/store";
-import { tomorrowStr, formatDateJp, formatCutoffLabel, cutoffEpochMs } from "@/lib/date";
+import { tomorrowStr, formatDateJp, formatCutoffLabel, cutoffEpochMs, isOrderingPausedForDate } from "@/lib/date";
 import OrderForm from "@/components/OrderForm";
 
 export const dynamic = "force-dynamic";
@@ -9,10 +9,12 @@ export default async function TomorrowOrderPage() {
   const [names, menuItems, settings] = await Promise.all([listNames(), listMenuItems(), getSettings()]);
 
   const now = new Date();
-  const dateLabel = formatDateJp(tomorrowStr(now));
+  const tomorrow = tomorrowStr(now);
+  const dateLabel = formatDateJp(tomorrow);
   // 明日の注文の締切は「今日の」指定時刻（前日締切）。
   const cutoffLabel = formatCutoffLabel(settings.tomorrowCutoffHour, settings.tomorrowCutoffMinute);
   const cutoffAtMs = cutoffEpochMs(settings.tomorrowCutoffHour, settings.tomorrowCutoffMinute, now);
+  const paused = isOrderingPausedForDate(settings, tomorrow);
 
   return (
     <main className="flex min-h-screen flex-col bg-canvas px-4 py-4">
@@ -31,7 +33,7 @@ export default async function TomorrowOrderPage() {
         </div>
       </header>
 
-      {settings.orderingPaused ? (
+      {paused ? (
         <div className="flex flex-1 flex-col items-center justify-center gap-3 text-center">
           <p className="text-4xl">🚧</p>
           <p className="text-lg font-bold text-gray-700">本日は注文を受け付けていません</p>

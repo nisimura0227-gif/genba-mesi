@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSettings } from "@/lib/store";
-import { formatCutoffLabel } from "@/lib/date";
+import { formatCutoffLabel, todayStr, dayOfWeekFromDateStr } from "@/lib/date";
 import { notifyMorningReminder } from "@/lib/notify";
 
 export const runtime = "nodejs";
@@ -15,6 +15,13 @@ function isAuthorized(req: NextRequest): boolean {
 export async function GET(req: NextRequest) {
   if (!isAuthorized(req)) {
     return NextResponse.json({ message: "権限がありません。" }, { status: 401 });
+  }
+
+  // 朝の定期リマインドは月〜金のみ。土日は「営業日」として登録されていても送らない
+  // （注文の受付可否とLINE通知の可否は別で管理する）。
+  const dow = dayOfWeekFromDateStr(todayStr());
+  if (dow === 0 || dow === 6) {
+    return NextResponse.json({ ok: true, skipped: "weekend" });
   }
 
   const settings = await getSettings();

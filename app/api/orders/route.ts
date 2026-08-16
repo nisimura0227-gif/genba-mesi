@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { listOrdersByDate, listMenuItems, upsertOrder, addName, getSettings, orderTotal, PAYMENT_METHOD } from "@/lib/store";
 import { isAdminRequest } from "@/lib/authGuard";
-import { isTodayOrderClosed, todayStr, tomorrowStr, formatCutoffLabel } from "@/lib/date";
+import { isTodayOrderClosed, todayStr, tomorrowStr, formatCutoffLabel, isOrderingPausedForDate } from "@/lib/date";
 import { notifyAdminNewOrder, notifyUserOrderConfirmed } from "@/lib/notify";
 
 export const runtime = "nodejs";
@@ -40,12 +40,11 @@ export async function POST(req: NextRequest) {
   }
 
   const settings = await getSettings();
+  const expectedDate = orderedVia === "today" ? todayStr() : tomorrowStr();
 
-  if (settings.orderingPaused) {
+  if (isOrderingPausedForDate(settings, expectedDate)) {
     return NextResponse.json({ message: "本日は注文を受け付けていません。" }, { status: 403 });
   }
-
-  const expectedDate = orderedVia === "today" ? todayStr() : tomorrowStr();
 
   if (orderedVia === "today") {
     if (isTodayOrderClosed(settings.cutoffHour, settings.cutoffMinute)) {
