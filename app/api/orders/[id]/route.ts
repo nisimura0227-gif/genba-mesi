@@ -1,16 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
-import { deleteOrder, setOrderPaymentStatus } from "@/lib/store";
+import { deleteOrder, getOrderById, setOrderPaymentStatus } from "@/lib/store";
 import { isAdminRequest } from "@/lib/authGuard";
-import { notifyUserPaymentConfirmed } from "@/lib/notify";
+import { notifyUserPaymentConfirmed, notifyUserOrderDeleted } from "@/lib/notify";
 
 export const runtime = "nodejs";
 
-// 注文を削除する（管理者のみ）
+// 注文を削除する（管理者のみ）。削除前に本人へLINEで知らせる。
 export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
   if (!isAdminRequest()) {
     return NextResponse.json({ message: "権限がありません。" }, { status: 401 });
   }
+  const order = await getOrderById(params.id);
   await deleteOrder(params.id);
+  if (order) {
+    notifyUserOrderDeleted(order).catch(() => {});
+  }
   return NextResponse.json({ ok: true });
 }
 

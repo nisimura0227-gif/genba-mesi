@@ -204,6 +204,11 @@ async function findOrder(deliveryDate: string, name: string): Promise<Order | nu
   );
 }
 
+async function getOrderById(id: string): Promise<Order | null> {
+  const all = await readOrders();
+  return all.find((o) => o.id === id) ?? null;
+}
+
 // 「同じ名前・同じ日付」で既存注文が見つかったとき、confirmOverwrite が true で
 // なければ書き込まずに conflict を返す。同姓同名の別人の注文を静かに上書きしてしまう
 // 事故を防ぐためのガード。既存注文の有無の確認と書き込みを同じロックの中で行うことで、
@@ -402,6 +407,7 @@ export const fileStore: StoreBackend = {
   listOrdersByDate,
   listOrderDates,
   findOrder,
+  getOrderById,
   upsertOrder,
   deleteOrder,
   setOrderPaymentStatus,

@@ -25,6 +25,7 @@ export default function AdminSettingsPage() {
   const [largeExtraPrice, setLargeExtraPrice] = useState("100");
   const [shopPhone, setShopPhone] = useState("");
   const [notifyNewOrder, setNotifyNewOrder] = useState(true);
+  const [orderingPaused, setOrderingPaused] = useState(false);
   const [adminLineUsers, setAdminLineUsers] = useState<Settings["adminLineUsers"]>([]);
 
   useEffect(() => {
@@ -39,6 +40,7 @@ export default function AdminSettingsPage() {
           setLargeExtraPrice(String(s.largeExtraPrice));
           setShopPhone(s.shopPhone);
           setNotifyNewOrder(s.notifyNewOrder);
+          setOrderingPaused(s.orderingPaused);
           setAdminLineUsers(s.adminLineUsers);
         }
       })
@@ -68,6 +70,7 @@ export default function AdminSettingsPage() {
           largeExtraPrice: Number(largeExtraPrice || 0),
           shopPhone: shopPhone.trim(),
           notifyNewOrder,
+          orderingPaused,
         }),
       });
       const data = await res.json();
@@ -93,6 +96,23 @@ export default function AdminSettingsPage() {
     <div className="flex flex-col gap-6">
       <form onSubmit={handleSave} className="flex flex-col gap-6">
         <h2 className="text-base font-bold text-brand-dark">⚙️ 設定</h2>
+
+        <Card className="border-2 border-accent/30 bg-accent-soft">
+          <label className="flex cursor-pointer items-center justify-between gap-3">
+            <span>
+              <span className="block text-sm font-bold text-accent-dark">🚧 休工モード（注文受付を停止）</span>
+              <span className="mt-1 block text-xs leading-relaxed text-accent-dark">
+                ONにすると、今日・明日どちらの注文ページにも「本日は注文を受け付けていません」と表示され、新しい注文を受け付けなくなります。
+              </span>
+            </span>
+            <input
+              type="checkbox"
+              checked={orderingPaused}
+              onChange={(e) => setOrderingPaused(e.target.checked)}
+              className="h-5 w-5 flex-shrink-0 accent-accent"
+            />
+          </label>
+        </Card>
 
         <Card className="flex flex-col gap-6">
           <div>

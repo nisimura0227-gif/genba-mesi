@@ -17,7 +17,7 @@ export default function AdminNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 mx-auto flex w-full max-w-md items-stretch border-t border-gray-200 bg-white shadow-[0_-2px_10px_rgba(0,0,0,0.04)]">
+    <nav className="fixed bottom-0 left-0 right-0 mx-auto flex w-full max-w-md items-stretch border-t border-gray-200 bg-white pb-[env(safe-area-inset-bottom)] shadow-[0_-2px_10px_rgba(0,0,0,0.04)]">
       {TABS.map((tab) => {
         const active = pathname === tab.href;
         return (

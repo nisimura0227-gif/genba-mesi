@@ -11,7 +11,9 @@ export const metadata: Metadata = {
   },
   description: "建設現場のお弁当注文サイト",
   applicationName: APP_NAME,
-  icons: { icon: "/icon.svg", apple: "/icon.svg" },
+  // iOSはapple-touch-iconにSVGを指定してもホーム画面追加時に反映されないことがあるため、
+  // アイコンだけはPNGを別に用意している（不透明・正方形。角丸はiOS側が自動で付ける）。
+  icons: { icon: "/icon.svg", apple: "/apple-touch-icon.png" },
   appleWebApp: {
     // iPhoneで「ホーム画面に追加」したときの表示名
     capable: true,

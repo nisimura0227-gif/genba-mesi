@@ -87,6 +87,8 @@ export type Settings = {
   adminLineUsers: AdminLineUser[];
   /** 新規注文が入るたびに管理者へ即時LINE通知するか */
   notifyNewOrder: boolean;
+  /** 休工モード。trueの間は今日・明日どちらの注文も新規受付を停止する */
+  orderingPaused: boolean;
 };
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -99,6 +101,7 @@ export const DEFAULT_SETTINGS: Settings = {
   shopPhone: "070-6426-7880",
   adminLineUsers: [],
   notifyNewOrder: true,
+  orderingPaused: false,
 };
 
 /** 保存されている設定に足りない項目があってもアプリが壊れないよう既定値で補う */
@@ -132,6 +135,7 @@ export function normalizeSettings(raw: Partial<Settings> | null | undefined): Se
     shopPhone: (typeof s.shopPhone === "string" && s.shopPhone.trim()) || DEFAULT_SETTINGS.shopPhone,
     adminLineUsers,
     notifyNewOrder: typeof s.notifyNewOrder === "boolean" ? s.notifyNewOrder : DEFAULT_SETTINGS.notifyNewOrder,
+    orderingPaused: typeof s.orderingPaused === "boolean" ? s.orderingPaused : DEFAULT_SETTINGS.orderingPaused,
   };
 }
 
@@ -172,6 +176,7 @@ export interface StoreBackend {
   listOrdersByDate(deliveryDate: string): Promise<Order[]>;
   listOrderDates(): Promise<string[]>;
   findOrder(deliveryDate: string, name: string): Promise<Order | null>;
+  getOrderById(id: string): Promise<Order | null>;
   upsertOrder(input: UpsertOrderInput): Promise<UpsertOrderResult>;
   deleteOrder(id: string): Promise<void>;
   /** 管理者がサイト上または管理者LINEから支払い状況を確定・変更する */

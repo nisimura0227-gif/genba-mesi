@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSettings, setOrderPaymentStatus } from "@/lib/store";
+import { getSettings, getOrderById, setOrderPaymentStatus } from "@/lib/store";
 import { verifySignature, replyMessage } from "@/lib/line";
 import { notifyUserPaymentConfirmed } from "@/lib/notify";
 
@@ -37,6 +37,17 @@ async function handlePostback(event: LineEvent): Promise<void> {
     return;
   }
 
+  // 複数の管理者がほぼ同時に「受け取り確認」を押した場合に、本人へのLINE通知が
+  // 二重に届かないよう、確定前に現在の状態を見て既にpaidなら通知をスキップする。
+  const before = await getOrderById(orderId);
+  if (!before) {
+    if (event.replyToken) {
+      await replyMessage(event.replyToken, [{ type: "text", text: "対象の注文が見つかりませんでした。" }]);
+    }
+    return;
+  }
+  const alreadyPaid = before.paymentStatus === "paid";
+
   const order = await setOrderPaymentStatus(orderId, "paid", { confirmedBy: userId });
   if (!order) {
     if (event.replyToken) {
@@ -45,12 +56,15 @@ async function handlePostback(event: LineEvent): Promise<void> {
     return;
   }
 
-  notifyUserPaymentConfirmed(order).catch(() => {});
+  if (!alreadyPaid) {
+    notifyUserPaymentConfirmed(order).catch(() => {});
+  }
 
   if (event.replyToken) {
-    await replyMessage(event.replyToken, [
-      { type: "text", text: `✅ ${order.name}さんの支払いを「支払い済み」にしました。` },
-    ]);
+    const text = alreadyPaid
+      ? `${order.name}さんはすでに支払い済みです（他の管理者が確認済みです）。`
+      : `✅ ${order.name}さんの支払いを「支払い済み」にしました。`;
+    await replyMessage(event.replyToken, [{ type: "text", text }]);
   }
 }
 

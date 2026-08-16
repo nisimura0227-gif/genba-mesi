@@ -45,6 +45,7 @@ export const deleteMenuItem = backend.deleteMenuItem;
 export const listOrdersByDate = backend.listOrdersByDate;
 export const listOrderDates = backend.listOrderDates;
 export const findOrder = backend.findOrder;
+export const getOrderById = backend.getOrderById;
 export const upsertOrder = backend.upsertOrder;
 export const deleteOrder = backend.deleteOrder;
 export const setOrderPaymentStatus = backend.setOrderPaymentStatus;

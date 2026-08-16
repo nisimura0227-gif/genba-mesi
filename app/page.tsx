@@ -42,7 +42,7 @@ export default async function TopPage() {
       <div className="flex-1 space-y-7 px-4 py-5 pb-12">
         <section>
           <p className="mb-2 text-sm font-bold text-gray-500">注文する</p>
-          <OrderButtons cutoffAtMs={cutoffAtMs} serverNowMs={serverNowMs} />
+          <OrderButtons cutoffAtMs={cutoffAtMs} serverNowMs={serverNowMs} orderingPaused={settings.orderingPaused} />
         </section>
 
         <StatusCard
@@ -51,6 +51,7 @@ export default async function TopPage() {
           cutoffLabel={cutoffLabel}
           cutoffAtMs={cutoffAtMs}
           serverNowMs={serverNowMs}
+          orderingPaused={settings.orderingPaused}
         />
 
         <section>

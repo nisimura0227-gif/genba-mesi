@@ -18,6 +18,8 @@ export default function manifest(): MetadataRoute.Manifest {
     icons: [
       { src: "/icon.svg", sizes: "any", type: "image/svg+xml", purpose: "any" },
       { src: "/icon.svg", sizes: "any", type: "image/svg+xml", purpose: "maskable" },
+      // SVGを解釈しないインストール経路向けにPNG版も用意しておく
+      { src: "/apple-touch-icon.png", sizes: "1024x1024", type: "image/png", purpose: "any" },
     ],
   };
 }

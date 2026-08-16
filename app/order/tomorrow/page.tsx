@@ -31,7 +31,13 @@ export default async function TomorrowOrderPage() {
         </div>
       </header>
 
-      {menuItems.length === 0 ? (
+      {settings.orderingPaused ? (
+        <div className="flex flex-1 flex-col items-center justify-center gap-3 text-center">
+          <p className="text-4xl">🚧</p>
+          <p className="text-lg font-bold text-gray-700">本日は注文を受け付けていません</p>
+          <p className="text-sm text-gray-500">休工などのため、注文受付を一時停止しています。</p>
+        </div>
+      ) : menuItems.length === 0 ? (
         <div className="flex flex-1 flex-col items-center justify-center gap-2 text-center text-gray-500">
           <p>メニューが登録されていません。</p>
           <p className="text-sm">管理者に登録を依頼してください。</p>

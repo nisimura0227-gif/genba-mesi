@@ -61,6 +61,10 @@ export async function PUT(req: NextRequest) {
     patch.notifyNewOrder = body.notifyNewOrder;
   }
 
+  if (typeof body.orderingPaused === "boolean") {
+    patch.orderingPaused = body.orderingPaused;
+  }
+
   if (body.largeExtraPrice !== undefined) {
     const p = Number(body.largeExtraPrice);
     if (!Number.isFinite(p) || p < 0 || p > 100000) {

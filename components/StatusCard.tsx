@@ -13,12 +13,15 @@ export default function StatusCard({
   cutoffLabel,
   cutoffAtMs,
   serverNowMs,
+  orderingPaused,
 }: {
   dateLabel: string;
   adminName: string;
   cutoffLabel: string;
   cutoffAtMs: number;
   serverNowMs: number;
+  /** 休工モード。trueの間は締切カウントダウンの代わりに停止中の表示にする */
+  orderingPaused?: boolean;
 }) {
   const { closed, hours, minutes } = useCountdown(cutoffAtMs, serverNowMs);
 
@@ -35,7 +38,11 @@ export default function StatusCard({
         </div>
       </div>
 
-      {closed ? (
+      {orderingPaused ? (
+        <div className="flex items-center justify-center gap-2 bg-gray-100 px-5 py-4">
+          <span className="text-sm font-extrabold text-gray-500">🚧 本日は注文受付を停止しています</span>
+        </div>
+      ) : closed ? (
         <div className="flex items-center justify-center gap-2 bg-red-50 px-5 py-4">
           <span className="text-sm font-extrabold text-red-600">🔴 本日の受付は終了しました</span>
         </div>

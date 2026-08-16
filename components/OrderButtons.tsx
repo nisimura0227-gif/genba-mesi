@@ -11,11 +11,26 @@ import { useCountdown } from "./useCountdown";
 export default function OrderButtons({
   cutoffAtMs,
   serverNowMs,
+  orderingPaused,
 }: {
   cutoffAtMs: number;
   serverNowMs: number;
+  /** 休工モード。trueの間は今日・明日どちらのボタンも停止表示にする */
+  orderingPaused?: boolean;
 }) {
   const { closed } = useCountdown(cutoffAtMs, serverNowMs);
+
+  if (orderingPaused) {
+    return (
+      <div
+        aria-disabled="true"
+        className="flex min-h-[84px] cursor-not-allowed flex-col items-center justify-center gap-1 rounded-2xl bg-gray-200 px-6 py-5 text-center text-gray-500"
+      >
+        <span className="text-lg font-bold">🚧 本日は注文を受け付けていません</span>
+        <span className="text-xs">休工などのため、注文受付を一時停止しています</span>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-3">

@@ -40,6 +40,11 @@ export async function POST(req: NextRequest) {
   }
 
   const settings = await getSettings();
+
+  if (settings.orderingPaused) {
+    return NextResponse.json({ message: "本日は注文を受け付けていません。" }, { status: 403 });
+  }
+
   const expectedDate = orderedVia === "today" ? todayStr() : tomorrowStr();
 
   if (orderedVia === "today") {
