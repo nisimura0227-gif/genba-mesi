@@ -9,7 +9,3 @@ export function Card({ className, ...props }: React.HTMLAttributes<HTMLDivElemen
     />
   );
 }
-
-export function CardSection({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("border-t border-gray-100 pt-3", className)} {...props} />;
-}

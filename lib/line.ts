@@ -19,10 +19,6 @@ function getChannelSecret(): string | null {
   return process.env.LINE_CHANNEL_SECRET || null;
 }
 
-export function isLineConfigured(): boolean {
-  return Boolean(getAccessToken());
-}
-
 async function callApi(path: string, body: unknown): Promise<void> {
   const token = getAccessToken();
   if (!token) {

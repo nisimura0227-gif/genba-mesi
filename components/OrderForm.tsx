@@ -7,7 +7,7 @@ import { loadSavedName, saveName } from "@/lib/savedName";
 import { useCountdown } from "./useCountdown";
 import LiffLink from "./LiffLink";
 import Button from "./ui/Button";
-import { Card, CardSection } from "./ui/Card";
+import { Card } from "./ui/Card";
 import { Badge } from "./ui/Badge";
 import { Input, Select, FieldLabel, HelpText } from "./ui/Field";
 

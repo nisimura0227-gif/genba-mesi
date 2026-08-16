@@ -20,11 +20,3 @@ export function saveName(name: string): void {
     // 保存できなくても機能上は問題ないため無視する
   }
 }
-
-export function clearSavedName(): void {
-  try {
-    localStorage.removeItem(KEY);
-  } catch {
-    // 同上
-  }
-}
