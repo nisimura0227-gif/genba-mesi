@@ -133,3 +133,15 @@ export function isOrderingPausedForDate(settings: Settings, dateStr: string): bo
   if (!isWeekend) return false;
   return !settings.workingWeekends.includes(dateStr);
 }
+
+/**
+ * settings.workingWeekends から、すでに過ぎた日付を取り除いた設定を返す。
+ * 設定を読み込むたびに適用することで、管理者が手動で削除しなくても
+ * 過ぎた登録日が管理画面に残り続けたり判定に影響したりしないようにする。
+ */
+export function pruneWorkingWeekends(settings: Settings, now: Date = new Date()): Settings {
+  const today = todayStr(now);
+  const pruned = settings.workingWeekends.filter((d) => d >= today);
+  if (pruned.length === settings.workingWeekends.length) return settings;
+  return { ...settings, workingWeekends: pruned };
+}

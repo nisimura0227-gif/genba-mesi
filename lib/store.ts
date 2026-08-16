@@ -11,7 +11,8 @@
 
 import { fileStore } from "./backends/fileStore";
 import { redisStore } from "./backends/redisStore";
-import type { StoreBackend } from "./storeTypes";
+import type { StoreBackend, Settings } from "./storeTypes";
+import { pruneWorkingWeekends } from "./date";
 
 export type {
   NameItem,
@@ -51,7 +52,13 @@ export const deleteOrder = backend.deleteOrder;
 export const setOrderPaymentStatus = backend.setOrderPaymentStatus;
 export const claimOrderPaid = backend.claimOrderPaid;
 
-export const getSettings = backend.getSettings;
+// 読み込むたびに workingWeekends から過ぎた日付を取り除く。
+// こうしておくと、管理者が手動で削除しなくても古い登録日が
+// 管理画面に残り続けたり判定に影響したりしない。
+export async function getSettings(): Promise<Settings> {
+  const settings = await backend.getSettings();
+  return pruneWorkingWeekends(settings);
+}
 export const saveSettings = backend.saveSettings;
 
 export const getImageInfo = backend.getImageInfo;
