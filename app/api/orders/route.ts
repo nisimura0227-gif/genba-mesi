@@ -24,6 +24,7 @@ export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
   const orderedVia = body?.orderedVia === "tomorrow" ? "tomorrow" : "today";
   const name = typeof body?.name === "string" ? body.name.trim() : "";
+  const company = typeof body?.company === "string" ? body.company.trim() : "";
   const menuItem = typeof body?.menuItem === "string" ? body.menuItem.trim() : "";
   const isLarge = body?.isLarge === true;
   // true のときだけ、同じ名前・同じ日付の既存注文を上書きしてよい。
@@ -37,6 +38,9 @@ export async function POST(req: NextRequest) {
   }
   if (name.length > 20) {
     return NextResponse.json({ message: "名前は20文字以内で入力してください。" }, { status: 400 });
+  }
+  if (company.length > 30) {
+    return NextResponse.json({ message: "所属会社は30文字以内で入力してください。" }, { status: 400 });
   }
 
   const settings = await getSettings();
@@ -72,6 +76,7 @@ export async function POST(req: NextRequest) {
     deliveryDate: expectedDate,
     orderedVia,
     name,
+    company,
     menuItem,
     isLarge,
     unitPrice,

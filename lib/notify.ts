@@ -3,7 +3,7 @@
 // 注文・支払い処理そのものは絶対に失敗させない（呼び出し側は await せず発火のみでもよい）。
 
 import type { Order } from "./storeTypes";
-import { orderTotal, paymentStatusLabel } from "./storeTypes";
+import { orderTotal, paymentStatusLabel, orderDisplayName } from "./storeTypes";
 import { getSettings, getLineLinkByName, listLineLinks } from "./store";
 import { formatDateJp, formatTimeHm } from "./date";
 import { pushMessage, multicastMessage, type LineMessage } from "./line";
@@ -42,7 +42,7 @@ export async function notifyAdminNewOrder(order: Order, isEdit: boolean, amountC
     const lines = [
       heading,
       "",
-      `👤 ${order.name}`,
+      `👤 ${orderDisplayName(order)}`,
       `🍱 ${order.menuItem}${order.isLarge ? "（大盛り）" : ""}`,
       `💰 ${yen(orderTotal(order))}`,
       `💴 支払い状況：${paymentStatusLabel(order.paymentStatus)}`,
@@ -65,10 +65,11 @@ export async function notifyAdminPaymentClaimed(order: Order): Promise<void> {
     if (settings.adminLineUsers.length === 0) return;
 
     const label = order.orderedVia === "today" ? "今日" : "明日";
+    const displayName = orderDisplayName(order);
     const messages: LineMessage[] = [
       {
         type: "flex",
-        altText: `🙋 ${order.name}さんが支払いを申告しました`,
+        altText: `🙋 ${displayName}さんが支払いを申告しました`,
         contents: {
           type: "bubble",
           body: {
@@ -77,7 +78,7 @@ export async function notifyAdminPaymentClaimed(order: Order): Promise<void> {
             spacing: "sm",
             contents: [
               { type: "text", text: "🙋 支払い申告", weight: "bold", size: "lg", color: "#B45309" },
-              { type: "text", text: `${label}の注文（${order.name}さん）`, size: "sm", color: "#666666" },
+              { type: "text", text: `${label}の注文（${displayName}さん）`, size: "sm", color: "#666666" },
               { type: "separator", margin: "md" },
               {
                 type: "box",
@@ -85,7 +86,7 @@ export async function notifyAdminPaymentClaimed(order: Order): Promise<void> {
                 margin: "md",
                 spacing: "xs",
                 contents: [
-                  { type: "text", text: `👤 ${order.name}` },
+                  { type: "text", text: `👤 ${displayName}` },
                   { type: "text", text: `🍱 ${order.menuItem}${order.isLarge ? "（大盛り）" : ""}` },
                   { type: "text", text: `💰 ${yen(orderTotal(order))}` },
                 ],
@@ -105,7 +106,7 @@ export async function notifyAdminPaymentClaimed(order: Order): Promise<void> {
                   type: "postback",
                   label: "✅ 受け取り確認",
                   data: `action=confirmPaid&orderId=${order.id}`,
-                  displayText: `${order.name}さんの受け取りを確認しました`,
+                  displayText: `${displayName}さんの受け取りを確認しました`,
                 },
               },
             ],

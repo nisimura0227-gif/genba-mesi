@@ -196,6 +196,7 @@ function normalizeOrder(o: Order & { isPaid?: boolean }): Order {
     unitPrice: Number.isFinite(o.unitPrice) ? o.unitPrice : 0,
     largeExtra: Number.isFinite(o.largeExtra) ? o.largeExtra : 0,
     paymentStatus,
+    company: typeof o.company === "string" ? o.company : "",
   };
 }
 
@@ -261,6 +262,9 @@ async function upsertOrder(input: UpsertOrderInput): Promise<UpsertOrderResult> 
         largeExtra: input.largeExtra,
         paymentMethod: input.paymentMethod,
         orderedVia: input.orderedVia,
+        // 所属会社は空欄で再送されても、以前に登録済みの値を消さない
+        // （端末側で会社名の保存前に注文内容だけ変更した場合などを考慮）
+        company: input.company || all[idx].company,
         orderedAt: now,
       };
       all[idx] = record;
@@ -270,6 +274,7 @@ async function upsertOrder(input: UpsertOrderInput): Promise<UpsertOrderResult> 
         deliveryDate: input.deliveryDate,
         orderedVia: input.orderedVia,
         name: input.name,
+        company: input.company,
         menuItem: input.menuItem,
         isLarge: input.isLarge,
         unitPrice: input.unitPrice,

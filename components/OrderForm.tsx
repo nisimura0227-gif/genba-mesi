@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PAYMENT_METHOD, type PaymentStatus } from "@/lib/storeTypes";
-import { loadSavedName, saveName } from "@/lib/savedName";
+import { loadSavedName, saveName, loadSavedCompany, saveCompany } from "@/lib/savedName";
 import { useCountdown } from "./useCountdown";
 import LiffLink from "./LiffLink";
 import Button from "./ui/Button";
@@ -16,6 +16,7 @@ type MenuLite = { id: string; name: string; price: number };
 
 /** 現在の自分の注文内容 */
 type MyOrder = {
+  company: string;
   menuItem: string;
   isLarge: boolean;
   paymentMethod: string;
@@ -64,6 +65,10 @@ export default function OrderForm({
 
   const [name, setName] = useState("");
   const [editingName, setEditingName] = useState(false);
+  const [company, setCompany] = useState("");
+  const [editingCompany, setEditingCompany] = useState(false);
+  /** 端末に会社名の保存が一度もない＝本当の初回登録者のときだけ、所属会社の入力を必須にする */
+  const [requireCompany, setRequireCompany] = useState(false);
   const [menuItem, setMenuItem] = useState("");
   const [isLarge, setIsLarge] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -94,19 +99,27 @@ export default function OrderForm({
     let cancelled = false;
     (async () => {
       const saved = loadSavedName();
+      const savedCompany = loadSavedCompany();
       if (!saved) {
         if (!cancelled) {
+          // 端末に何も保存されていない＝本当の初回登録者。所属会社・氏名をまとめて入力してもらう
           setEditingName(true);
+          setEditingCompany(true);
+          setRequireCompany(true);
           setPhase("form");
         }
         return;
       }
+      setCompany(savedCompany);
+      // 氏名は保存済みだが所属会社が未登録の既存ユーザー：入力欄を開いて自然に促す（必須にはしない）
+      setEditingCompany(!savedCompany);
       const existing = await checkExistingOrder(saved);
       if (cancelled) return;
       setName(saved);
       if (existing) {
         setMyOrder(existing);
         setConfirmedName(saved);
+        setCompany(existing.company || savedCompany);
         setMenuItem(existing.menuItem);
         setIsLarge(existing.isLarge);
         setPhase("done");
@@ -121,7 +134,12 @@ export default function OrderForm({
 
   const selectedMenu = menuItems.find((m) => m.name === menuItem) ?? null;
   const estimatedTotal = selectedMenu ? selectedMenu.price + (isLarge ? largeExtraPrice : 0) : 0;
-  const canSubmit = Boolean(name.trim()) && Boolean(menuItem) && !submitting && !closed;
+  const canSubmit =
+    Boolean(name.trim()) &&
+    (!requireCompany || Boolean(company.trim())) &&
+    Boolean(menuItem) &&
+    !submitting &&
+    !closed;
 
   /**
    * confirmOverwrite=false で送って「同じ名前の既存注文がある」と分かった場合、
@@ -131,6 +149,7 @@ export default function OrderForm({
    */
   async function submitOrder(confirmOverwrite: boolean) {
     const trimmedName = name.trim();
+    const trimmedCompany = company.trim();
     setSubmitting(true);
     setError("");
     try {
@@ -140,6 +159,7 @@ export default function OrderForm({
         body: JSON.stringify({
           orderedVia,
           name: trimmedName,
+          company: trimmedCompany,
           menuItem,
           isLarge,
           confirmOverwrite,
@@ -172,8 +192,10 @@ export default function OrderForm({
         return;
       }
       saveName(trimmedName);
+      saveCompany(trimmedCompany);
       const o = data.order;
       setMyOrder({
+        company: o.company ?? trimmedCompany,
         menuItem: o.menuItem,
         isLarge: o.isLarge,
         paymentMethod: o.paymentMethod,
@@ -182,6 +204,8 @@ export default function OrderForm({
       });
       setConfirmedName(trimmedName);
       setEditingName(false);
+      setEditingCompany(false);
+      setRequireCompany(false);
       setPhase("done");
       setSubmitting(false);
     } catch {
@@ -270,6 +294,12 @@ export default function OrderForm({
         </Card>
 
         <Card className="divide-y divide-gray-100 p-0 text-base">
+          {myOrder.company && (
+            <div className="flex items-center justify-between px-4 py-3.5">
+              <span className="text-gray-500">所属会社</span>
+              <span className="font-bold text-gray-800">{myOrder.company}</span>
+            </div>
+          )}
           <div className="flex items-center justify-between px-4 py-3.5">
             <span className="text-gray-500">名前</span>
             <span className="font-bold text-gray-800">{name}</span>
@@ -387,6 +417,34 @@ export default function OrderForm({
           <p key={i}>{line}</p>
         ))}
       </Card>
+
+      <div>
+        <FieldLabel>所属会社{requireCompany ? "" : "（任意）"}</FieldLabel>
+        {company && !editingCompany ? (
+          <div className="flex items-center justify-between rounded-xl border-2 border-gray-300 bg-gray-50 px-4 py-4">
+            <span className="text-lg font-bold text-gray-800">{company}</span>
+            <Button type="button" variant="muted" size="sm" onClick={() => setEditingCompany(true)}>
+              変更
+            </Button>
+          </div>
+        ) : (
+          <>
+            <Input
+              value={company}
+              onChange={(e) => setCompany(e.target.value)}
+              placeholder="例）〇〇建設"
+              maxLength={30}
+              required={requireCompany}
+              className="text-lg"
+            />
+            <HelpText>
+              {requireCompany
+                ? "初回のみ入力してください。次回から自動で入ります。"
+                : "入力いただくと、管理画面で所属ごとに把握しやすくなります（未入力でも注文できます）。"}
+            </HelpText>
+          </>
+        )}
+      </div>
 
       <div>
         <FieldLabel>名前</FieldLabel>

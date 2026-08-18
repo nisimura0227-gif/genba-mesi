@@ -19,6 +19,8 @@ export type Order = {
   deliveryDate: string; // "YYYY-MM-DD" お弁当を食べる日
   orderedVia: "today" | "tomorrow";
   name: string;
+  /** 所属会社（任意）。未入力の場合は空文字 */
+  company: string;
   menuItem: string;
   isLarge: boolean; // 大盛り
   /** 注文時点のメニュー単価。後でメニューの金額を変えても過去の注文がずれないよう記録しておく */
@@ -41,6 +43,7 @@ export type UpsertOrderInput = {
   deliveryDate: string;
   orderedVia: "today" | "tomorrow";
   name: string;
+  company: string;
   menuItem: string;
   isLarge: boolean;
   unitPrice: number;
@@ -164,6 +167,11 @@ export function orderTotal(order: Pick<Order, "unitPrice" | "largeExtra">): numb
   const unit = Number.isFinite(order.unitPrice) ? order.unitPrice : 0;
   const extra = Number.isFinite(order.largeExtra) ? order.largeExtra : 0;
   return unit + extra;
+}
+
+/** 管理画面などでの表示名。所属会社が登録されていれば「所属会社　氏名」の形式にする */
+export function orderDisplayName(o: Pick<Order, "name" | "company">): string {
+  return o.company ? `${o.company}　${o.name}` : o.name;
 }
 
 /** 表示用の支払い状況ラベル */

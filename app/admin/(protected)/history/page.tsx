@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { formatDateJp, formatTimeHm } from "@/lib/date";
-import { orderTotal } from "@/lib/storeTypes";
+import { orderTotal, orderDisplayName } from "@/lib/storeTypes";
 import type { Order } from "@/lib/storeTypes";
 import { Card } from "@/components/ui/Card";
 import { Select } from "@/components/ui/Field";
@@ -51,7 +51,7 @@ export default function AdminHistoryPage() {
   }, [selected, loadOrders]);
 
   async function handleDelete(order: Order) {
-    if (!confirm(`${order.name} さんの注文（${order.menuItem}）を削除します。よろしいですか？`)) return;
+    if (!confirm(`${orderDisplayName(order)} さんの注文（${order.menuItem}）を削除します。よろしいですか？`)) return;
     setBusyId(order.id);
     setError("");
     try {
@@ -98,7 +98,7 @@ export default function AdminHistoryPage() {
               <div key={o.id} className="flex items-start justify-between gap-2 px-3.5 py-3">
                 <div className="min-w-0">
                   <p className="font-bold text-gray-800">
-                    {o.name}
+                    {orderDisplayName(o)}
                     {o.paymentStatus === "paid" && (
                       <span className="ml-2 text-xs font-normal text-brand-dark">✅ 支払い済み</span>
                     )}

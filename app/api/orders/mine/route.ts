@@ -27,6 +27,7 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({
     order: order
       ? {
+          company: order.company,
           menuItem: order.menuItem,
           isLarge: order.isLarge,
           paymentMethod: order.paymentMethod,

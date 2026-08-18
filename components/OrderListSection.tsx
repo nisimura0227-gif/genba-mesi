@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Order, PaymentStatus } from "@/lib/storeTypes";
-import { orderTotal, paymentStatusLabel } from "@/lib/storeTypes";
+import { orderTotal, paymentStatusLabel, orderDisplayName } from "@/lib/storeTypes";
 import { formatTimeHm } from "@/lib/date";
 import { Card } from "./ui/Card";
 import { Badge } from "./ui/Badge";
@@ -85,7 +85,7 @@ export default function OrderListSection({
                 <div key={o.id} className="px-4 py-3.5">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <p className="font-bold text-gray-800">{o.name}</p>
+                      <p className="font-bold text-gray-800">{orderDisplayName(o)}</p>
                       <p className="text-sm text-gray-500">
                         {o.menuItem}
                         {o.isLarge ? "（大盛り）" : ""}

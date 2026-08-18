@@ -1,5 +1,6 @@
 import { listNames, listOrdersByDate, listLineLinks } from "@/lib/store";
 import { todayStr, tomorrowStr } from "@/lib/date";
+import { orderDisplayName } from "@/lib/storeTypes";
 import ManageList from "@/components/ManageList";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
@@ -49,10 +50,12 @@ export default async function AdminNamesPage() {
               const t = todayMap.get(n.name);
               const m = tomorrowMap.get(n.name);
               const linked = linkedNames.has(lineKey(n.name));
+              // 所属会社は注文ごとに記録されるため、直近の今日/明日の注文から分かればそれを表示する
+              const company = t?.company || m?.company || "";
               return (
                 <div key={n.id} className="px-3.5 py-3">
                   <div className="mb-1 flex items-center gap-2">
-                    <p className="text-base font-bold text-gray-800">{n.name}</p>
+                    <p className="text-base font-bold text-gray-800">{orderDisplayName({ name: n.name, company })}</p>
                     {linked ? (
                       <Badge variant="success">✅ LINE連携済み</Badge>
                     ) : (

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSettings, getOrderById, setOrderPaymentStatus } from "@/lib/store";
 import { verifySignature, replyMessage } from "@/lib/line";
 import { notifyUserPaymentConfirmed } from "@/lib/notify";
+import { orderDisplayName } from "@/lib/storeTypes";
 
 export const runtime = "nodejs";
 
@@ -62,8 +63,8 @@ async function handlePostback(event: LineEvent): Promise<void> {
 
   if (event.replyToken) {
     const text = alreadyPaid
-      ? `${order.name}さんはすでに支払い済みです（他の管理者が確認済みです）。`
-      : `✅ ${order.name}さんの支払いを「支払い済み」にしました。`;
+      ? `${orderDisplayName(order)}さんはすでに支払い済みです（他の管理者が確認済みです）。`
+      : `✅ ${orderDisplayName(order)}さんの支払いを「支払い済み」にしました。`;
     await replyMessage(event.replyToken, [{ type: "text", text }]);
   }
 }
